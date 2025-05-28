@@ -8,12 +8,13 @@ class HalfcourtView extends StatelessWidget {
     return Center(
       child: Container(
         color: Colors.black,
-        width: double.infinity,
-        height: double.infinity,
+          width: double.infinity,
+          height: double.infinity,
+          alignment: Alignment.center,
         child: Image.asset(
           'assets/half_court.png',
-          fit: BoxFit.contain,
-          alignment: Alignment.center,
+           fit: BoxFit.contain,
+         
         ),
       ),
     );

@@ -22,7 +22,7 @@ class DraggablePlayer extends StatelessWidget {
       child: Draggable<String>(
         data: label,
         feedback: _buildPlayerCircle(opacity: 0.7),
-        childWhenDragging: Container(),
+        childWhenDragging: _buildPlayerCircle(opacity: 0.3), // Show faded icon instead of empty
         onDragEnd: (details) {
           onDragEnd(details.offset);
         },

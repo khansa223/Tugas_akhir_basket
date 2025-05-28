@@ -8,11 +8,11 @@ class FullcourtView extends StatelessWidget {
     return Center(
       child: Container(
         color: Colors.black,
-        width: double.infinity,
-        height: double.infinity,
         child: Image.asset(
           'assets/full_court.png',
           fit: BoxFit.contain,
+          width: double.infinity,
+          height: double.infinity,
           alignment: Alignment.center,
         ),
       ),

@@ -12,11 +12,14 @@ class CourtSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      iconSize: 36,
-      icon: Icon(isFullCourt ? Icons.crop_16_9 : Icons.crop_square),
-      tooltip: isFullCourt ? 'Switch to Half Court' : 'Switch to Full Court',
+    return ElevatedButton.icon(
       onPressed: onToggle,
+      icon: Icon(isFullCourt ? Icons.crop_16_9 : Icons.switch_right),
+      label: Text(isFullCourt ? 'Half Court' : 'Full Court'),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        textStyle: const TextStyle(fontSize: 16),
+      ),
     );
   }
 }

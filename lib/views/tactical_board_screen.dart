@@ -16,17 +16,13 @@ class TacticalBoardScreen extends StatefulWidget {
 class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
   bool _isFullCourt = true;
 
-  // Player markers on court with positions
   final List<PlayerModel> _players = [];
   final Map<String, Offset> _playerPositions = {};
-
-  // Drawing points
   List<Offset> _drawingPoints = [];
 
   void _toggleCourt() {
     setState(() {
       _isFullCourt = !_isFullCourt;
-      // Clear players and drawings on court switch
       _players.clear();
       _playerPositions.clear();
       _drawingPoints.clear();
@@ -37,8 +33,15 @@ class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
     setState(() {
       if (!_players.any((p) => p.id == player.id)) {
         _players.add(player);
-        _playerPositions[player.id] = const Offset(100, 100); // default position
+        _playerPositions[player.id] = const Offset(100, 100);
       }
+    });
+  }
+
+  void _removePlayer(String id) {
+    setState(() {
+      _players.removeWhere((p) => p.id == id);
+      _playerPositions.remove(id);
     });
   }
 
@@ -56,24 +59,18 @@ class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // List of draggable players to add
-    final List<PlayerModel> availablePlayers = [
+    final List<PlayerModel> allPlayers = [
       for (int i = 1; i <= 5; i++) PlayerModel(id: 'P$i', label: 'P$i', isOffense: true),
       for (int i = 1; i <= 5; i++) PlayerModel(id: 'D$i', label: 'D$i', isOffense: false),
     ];
 
+    final List<PlayerModel> benchPlayers = allPlayers.where((p) => !_players.any((pl) => pl.id == p.id)).toList();
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Basketball Tactical Board'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        foregroundColor: Colors.white,
-      ),
-      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           _isFullCourt ? const FullcourtView() : const HalfcourtView(),
+
           // Drawing canvas
           GestureDetector(
             onPanUpdate: (details) {
@@ -83,7 +80,7 @@ class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
                 _drawingPoints = List.from(_drawingPoints)..add(localPosition);
               });
             },
-            onPanEnd: (details) {
+            onPanEnd: (_) {
               setState(() {
                 _drawingPoints = List.from(_drawingPoints)..add(const Offset(0, 0));
               });
@@ -93,7 +90,8 @@ class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
               size: Size.infinite,
             ),
           ),
-          // Player markers on court
+
+          // Players on court
           ..._players.map((player) {
             final pos = _playerPositions[player.id] ?? const Offset(100, 100);
             return DraggablePlayer(
@@ -101,106 +99,123 @@ class _TacticalBoardScreenState extends State<TacticalBoardScreen> {
               label: player.label,
               color: player.isOffense ? Colors.blue : Colors.red,
               initialPosition: pos,
-              onDragEnd: (offset) {
-                _updatePlayerPosition(player.id, offset);
-              },
+              onDragEnd: (offset) => _updatePlayerPosition(player.id, offset),
             );
-          }).toList(),
-          // Player selection panel at top
+          }),
+
+          // Left column: P1–P5
           Positioned(
-            top: 56,
-            left: 0,
-            right: 0,
-            height: 60,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: availablePlayers.map((player) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Draggable<PlayerModel>(
-                    data: player,
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: player.isOffense ? Colors.blue : Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black, width: 1),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          player.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+            top: 100,
+            left: 8,
+            child: Column(
+              children: [
+                ...benchPlayers
+                    .where((p) => p.isOffense)
+                    .map((player) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Draggable<PlayerModel>(
+                            data: player,
+                            feedback: Material(
+                              color: Colors.transparent,
+                              child: _buildPlayerCircle(player),
+                            ),
+                            childWhenDragging: Container(
+                              width: 40,
+                              height: 40,
+                              color: Colors.grey.shade300,
+                            ),
+                            child: _buildPlayerCircle(player),
                           ),
-                        ),
-                      ),
-                    ),
-                    childWhenDragging: Container(
-                      width: 40,
-                      height: 40,
-                      color: Colors.grey.shade300,
-                    ),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: player.isOffense ? Colors.blue : Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 1),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        player.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                        )),
+              ],
             ),
           ),
-          // Drag target area for players on court
+
+          // Right column: D1–D5
+          Positioned(
+            top: 100,
+            right: 8,
+            child: Column(
+              children: [
+                ...benchPlayers
+                    .where((p) => !p.isOffense)
+                    .map((player) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Draggable<PlayerModel>(
+                            data: player,
+                            feedback: Material(
+                              color: Colors.transparent,
+                              child: _buildPlayerCircle(player),
+                            ),
+                            childWhenDragging: Container(
+                              width: 40,
+                              height: 40,
+                              color: Colors.grey.shade300,
+                            ),
+                            child: _buildPlayerCircle(player),
+                          ),
+                        )),
+              ],
+            ),
+          ),
+
+          // Drag area for placing players
           Positioned.fill(
             child: DragTarget<PlayerModel>(
               onAcceptWithDetails: (details) {
                 final RenderBox box = context.findRenderObject() as RenderBox;
                 final localOffset = box.globalToLocal(details.offset);
-                _addPlayer(details.data);
-                _updatePlayerPosition(details.data.id, localOffset);
+                if (_players.any((p) => p.id == details.data.id)) {
+                  _updatePlayerPosition(details.data.id, localOffset);
+                } else {
+                  _addPlayer(details.data);
+                  _updatePlayerPosition(details.data.id, localOffset);
+                }
               },
-              builder: (context, candidateData, rejectedData) {
-                return const SizedBox.expand();
-              },
+              builder: (_, __, ___) => const SizedBox.expand(),
             ),
           ),
-          // Clear drawing button at bottom left
+
+          // Bottom right: Clear Drawing
           Positioned(
+            right: 12,
             bottom: 16,
-            left: 16,
             child: ElevatedButton(
               onPressed: _clearDrawing,
               child: const Text('Clear Drawing'),
             ),
           ),
-          // Court switcher button at bottom center
+
+          // Bottom left: Court Switcher
           Positioned(
+            left: 12,
             bottom: 16,
-            left: 0,
-            right: 0,
             child: CourtSwitcher(
               isFullCourt: _isFullCourt,
               onToggle: _toggleCourt,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlayerCircle(PlayerModel player) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: player.isOffense ? Colors.blue : Colors.red,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.black, width: 1),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        player.label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

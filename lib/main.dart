@@ -1,3 +1,4 @@
+import 'package:aplikasi_basketball/views/home_view.dart';
 import 'package:flutter/material.dart';
 import 'views/tactical_board_screen.dart';
 
@@ -16,7 +17,7 @@ class BasketballTacticalBoardApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const TacticalBoardScreen(),
+      home: const HomeScreen(),
     );
   }
 }
